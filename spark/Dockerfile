@@ -20,17 +20,20 @@ RUN pip3 install boto3 pyspark
 
 # Install the required Hive version (3.1.3)
 RUN mkdir -p /opt/bitnami/spark/jars && \
+    mkdir -p /opt/bitnami/hive/lib && \
     curl -L -o /opt/bitnami/spark/jars/hive-metastore-3.1.3.jar https://repo1.maven.org/maven2/org/apache/hive/hive-metastore/3.1.3/hive-metastore-3.1.3.jar && \
     curl -L -o /opt/bitnami/spark/jars/hive-exec-3.1.3.jar https://repo1.maven.org/maven2/org/apache/hive/hive-exec/3.1.3/hive-exec-3.1.3.jar && \
     curl -L -o /opt/bitnami/spark/jars/hive-common-3.1.3.jar https://repo1.maven.org/maven2/org/apache/hive/hive-common/3.1.3/hive-common-3.1.3.jar && \
     curl -L -o /opt/bitnami/spark/jars/hive-serde-3.1.3.jar https://repo1.maven.org/maven2/org/apache/hive/hive-serde/3.1.3/hive-serde-3.1.3.jar && \
     curl -L -o /opt/bitnami/spark/jars/hive-jdbc-3.1.3.jar https://repo1.maven.org/maven2/org/apache/hive/hive-jdbc/3.1.3/hive-jdbc-3.1.3.jar && \
-    curl -L -o /opt/bitnami/spark/jars/hive-runtime-3.1.3.jar https://repo1.maven.org/maven2/org/apache/hive/hive-runtime/3.1.3/hive-runtime-3.1.3.jar
+    curl -L -o /opt/bitnami/spark/jars/hive-runtime-3.1.3.jar https://repo1.maven.org/maven2/org/apache/hive/hive-runtime/3.1.3/hive-runtime-3.1.3.jar && \
+    curl -L -o /opt/bitnami/hive/lib/hadoop-aws-3.2.0.jar https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.2.0/hadoop-aws-3.2.0.jar && \
+    curl -L -o /opt/bitnami/hive/lib/aws-java-sdk-bundle-1.11.901.jar https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.901/aws-java-sdk-bundle-1.11.901.jar
 
 # Set the Spark and Hadoop versions
 ENV SPARK_HOME=/opt/bitnami/spark
 ENV HADOOP_HOME=/opt/bitnami/spark
-ENV HIVE_HOME=/opt/bitnami/spark
+ENV HIVE_HOME=/opt/bitnami/hive/lib
 # Set the working directory inside the container
 WORKDIR /app
 

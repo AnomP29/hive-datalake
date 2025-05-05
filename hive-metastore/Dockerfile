@@ -36,6 +36,9 @@ ADD https://jdbc.postgresql.org/download/postgresql-42.7.3.jar /opt/hive/lib/
 RUN curl -O https://archive.apache.org/dist/hadoop/common/hadoop-3.3.1/hadoop-3.3.1.tar.gz && \
     tar -xzvf hadoop-3.3.1.tar.gz -C /opt/hadoop
 
+RUN curl -L -o /opt/hive/lib/hadoop-aws-3.2.0.jar https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.2.0/hadoop-aws-3.2.0.jar && \
+    curl -L -o /opt/hive/lib/aws-java-sdk-bundle-1.11.901.jar https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.901/aws-java-sdk-bundle-1.11.901.jar
+
 # Add Hadoop JARs (hadoop-common, hadoop-aws, etc.)
 # ADD https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-common/3.3.1/hadoop-common-3.3.1.jar /opt/hive/lib/
 # ADD https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-auth/3.3.1/hadoop-auth-3.3.1.jar /opt/hive/lib/

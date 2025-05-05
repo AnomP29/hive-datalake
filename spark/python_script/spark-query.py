@@ -8,8 +8,8 @@ spark = SparkSession.builder \
 
 # Create DataFrame
 data = [
-    ("TX001", 15000.0, "2025-05-01"),
-    ("TX002", 22000.0, "2025-05-02")
+    ("TX001", 15000.0, "2025-05-04"),
+    ("TX002", 22000.0, "2025-05-05")
 ]
 schema = StructType([
     StructField("id", StringType(), True),
