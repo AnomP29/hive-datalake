@@ -23,32 +23,32 @@ services:
       - HIVE_METASTORE_URI=thrift://hive-metastore:9083
       - HIVE_METASTORE_HOST=hive-metastore
       - HIVE_METASTORE_PORT=9083
-      - HIVE_DB_HOST=postgres
+      - HIVE_DB_HOST=172.27.16.1
       - HIVE_DB_PORT=5432
       - HIVE_DB_NAME=metastore
-      - HIVE_DB_USER=hive
-      - HIVE_DB_PASSWORD=hive    
+      - HIVE_DB_USER=postgres
+      - HIVE_DB_PASSWORD=postgres    
     depends_on:
-      - postgres
+      - minio
     networks:
       - hive-net
     command: ["/opt/hive/bin/hive", "--service", "metastore"]
     volumes:
       - ./hive-metastore/hive-site.xml:/opt/hive/conf/hive-site.xml
 
-  postgres:
-    image: postgres:13
-    container_name: postgres
-    environment:
-      POSTGRES_USER: hive
-      POSTGRES_PASSWORD: hive
-      POSTGRES_DB: metastore
-    ports:
-      - 7432:5432
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - hive-net
+  # postgres:
+  #   image: postgres:13
+  #   container_name: postgres
+  #   environment:
+  #     POSTGRES_USER: hive
+  #     POSTGRES_PASSWORD: hive
+  #     POSTGRES_DB: metastore
+  #   ports:
+  #     - 7432:5432
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - hive-net
 
   trino:
     build: ./trino
@@ -69,7 +69,8 @@ services:
       - "8088:8088"
     environment:
       - SUPERSET_SECRET_KEY=supersecret
-      - DATABASE_URL=postgresql://superset:superset@superset-db:5432/superset
+      # - DATABASE_URL=postgresql://superset:superset@superset-db:5432/superset
+      - DATABASE_URL=postgresql://postgres:postgres@172.27.16.1:5432/superset
     entrypoint:
     - /bin/bash
     - -c
@@ -83,28 +84,28 @@ services:
         --password admin &&
       superset init &&
       superset run -h 0.0.0.0 -p 8088
-    depends_on:
-      - superset-db
+    # depends_on:
+    #   - superset-db
     networks:
       - hive-net
   
-  superset-db:
-    image: postgres:13
-    container_name: superset-db
-    environment:
-      POSTGRES_USER: superset
-      POSTGRES_PASSWORD: superset
-      POSTGRES_DB: superset
-    volumes:
-      - superset_db_data:/var/lib/postgresql/data
-    networks:
-      - hive-net
+  # superset-db:
+  #   image: postgres:13
+  #   container_name: superset-db
+  #   environment:
+  #     POSTGRES_USER: superset
+  #     POSTGRES_PASSWORD: superset
+  #     POSTGRES_DB: superset
+  #   volumes:
+  #     - superset_db_data:/var/lib/postgresql/data
+  #   networks:
+  #     - hive-net
       
 volumes:
   minio_data:
-  postgres_data:
+  # postgres_data:
   trino_config:
-  superset_db_data:
+  # superset_db_data:
 
 networks:
   hive-net:
