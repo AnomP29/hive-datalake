@@ -1,6 +1,2 @@
-minio-data/*
-# Ignore the entire .bloomcycle.bin directory
-minio-data/.minio.sys/buckets/.bloomcycle.bin/
-minio-data/.minio.sys/buckets/.usage-cache.bin.bkp/
-
+minio-data/
 
