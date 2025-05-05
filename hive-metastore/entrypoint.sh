@@ -2,6 +2,8 @@
 
 set -e
 
+export HIVE_METASTORE_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000"
+
 # Set the password environment variable
 export PGPASSWORD="$HIVE_DB_PASSWORD"
 
@@ -29,6 +31,9 @@ else
   echo "Schema not found. Initializing Hive Metastore schema..."
   /opt/hive/bin/schematool -dbType postgres -initSchema
 fi
+
+/opt/hive/bin/hiveserver2 &
+exec "$@"
 
 echo "Starting Hive Metastore..."
 exec /opt/hive/bin/hive --service metastore

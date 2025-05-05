@@ -1,8 +1,8 @@
 <configuration>
+  <!-- PostgreSQL Metastore DB Config -->
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:postgresql://172.27.16.1:5432/metastore</value>
-    <description>PostgreSQL JDBC URL</description>
   </property>
 
   <property>
@@ -20,6 +20,7 @@
     <value>postgres</value>
   </property>
 
+  <!-- Schema validation -->
   <property>
     <name>datanucleus.autoCreateSchema</name>
     <value>false</value>
@@ -38,6 +39,65 @@
   <property>
     <name>hive.metastore.schema.verification</name>
     <value>true</value>
+  </property>
+
+  <!-- Thrift Metastore Server -->
+  <property>
+    <name>hive.metastore.thrift.bind.host</name>
+    <value>0.0.0.0</value>
+  </property>
+
+  <property>
+    <name>hive.metastore.port</name>
+    <value>9083</value>
+  </property>
+
+  <!-- External clients must use a real hostname/IP, not 0.0.0.0 -->
+  <property>
+    <name>hive.metastore.uris</name>
+    <value>thrift://hive-metastore:9083</value>
+  </property>
+
+  <!-- Warehouse directory -->
+  <property>
+    <name>hive.metastore.warehouse.dir</name>
+    <value>/user/hive/warehouse</value>
+  </property>
+
+  <!-- S3 / MinIO (s3a) config -->
+  <property>
+    <name>fs.s3a.access.key</name>
+    <value>minioadmin</value>
+  </property>
+
+  <property>
+    <name>fs.s3a.secret.key</name>
+    <value>minioadmin</value>
+  </property>
+
+  <property>
+    <name>fs.s3a.endpoint</name>
+    <value>http://minio:9000</value>
+  </property>
+
+  <property>
+    <name>fs.s3a.path.style.access</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>fs.s3a.connection.ssl.enabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>fs.s3a.impl</name>
+    <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+  </property>
+
+  <property>
+    <name>hive.root.logger</name>
+    <value>DEBUG, console</value>
   </property>
 
 </configuration>
