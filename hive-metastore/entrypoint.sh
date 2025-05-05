@@ -1,28 +1,13 @@
 #!/bin/bash
 
 set -e
-
-# Set the password environment variable
-export PGPASSWORD="$HIVE_DB_PASSWORD"
-
 # Wait for PostgreSQL to be ready
 until pg_isready -h $HIVE_DB_HOST -p $HIVE_DB_PORT -U $HIVE_DB_USER; do
   echo "Waiting for PostgreSQL at $HIVE_DB_HOST:$HIVE_DB_PORT..."
   sleep 2
 done
 
-echo "PostgreSQL is ready"
-
-# Check if the database exists
-echo "Check if DB $HIVE_DB_NAME Exists..."
-if ! psql -h "$HIVE_DB_HOST" -U "$HIVE_DB_USER" -lqt | cut -d \| -f 1 | grep -qw "$HIVE_DB_NAME"; then
-  echo "Database $HIVE_DB_NAME does not exist. Creating..."
-  psql -h "$HIVE_DB_HOST" -U "$HIVE_DB_USER" -c "CREATE DATABASE $HIVE_DB_NAME;"
-else
-  echo "Database $HIVE_DB_NAME already exists."
-fi
-
-echo "Checking schema..."
+echo "PostgreSQL is ready. Checking schema..."
 
 # Try checking the schema
 if /opt/hive/bin/schematool -dbType postgres -info; then
