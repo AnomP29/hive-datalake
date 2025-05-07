@@ -1,5 +1,7 @@
 FROM apache/hive:3.1.3
 
+ENV HADOOP_OPTS="-Djava.net.preferIPv4Stack=true -Dsun.net.spi.nameservice.provider.1=dns,sun"
+
 # Set environment variables for Hive and Hadoop
 ENV HIVE_HOME=/opt/hive
 ENV HADOOP_HOME=/opt/hadoop
