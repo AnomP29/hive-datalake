@@ -32,8 +32,8 @@ else
   /opt/hive/bin/schematool -dbType postgres -initSchema
 fi
 
-/opt/hive/bin/hiveserver2 &
-exec "$@"
+# /opt/hive/bin/hiveserver2 &
+# exec "$@"
 
 echo "Starting Hive Metastore..."
 exec /opt/hive/bin/hive --service metastore

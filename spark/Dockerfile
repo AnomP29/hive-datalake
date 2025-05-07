@@ -43,4 +43,4 @@ COPY ./python_script/spark-query.py /app/
 COPY ./conf/spark-defaults.conf /opt/bitnami/spark/conf/spark-defaults.conf
 
 # Set the entrypoint to run the script
-ENTRYPOINT ["python3", "/app/spark-query.py"]
+# ENTRYPOINT ["python3", "/app/spark-query.py"]

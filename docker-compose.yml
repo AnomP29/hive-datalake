@@ -36,6 +36,28 @@ services:
     volumes:
       - ./hive-metastore/hive-site.xml:/opt/hive/conf/hive-site.xml
 
+  hive-server:
+    build: ./hive-server
+    container_name: hive-server
+    depends_on:
+      - hive-metastore
+    ports:
+      - "10000:10000"  # HiveServer2 JDBC
+    environment:
+      HIVE_SERVER2_THRIFT_PORT: 10000
+      HIVE_METASTORE_URI: thrift://hive-metastore:9083
+      HIVE_DB_HOST: 172.27.16.1
+      HIVE_DB_PORT: 5432
+      HIVE_DB_NAME: metastore
+      HIVE_DB_USER: postgres
+      HIVE_DB_PASSWORD: postgres    
+
+    command: ["/opt/hive/bin/hiveserver2", "--service", "hiveserver2"]
+    volumes:
+      - ./hive-server/hive-site.xml:/opt/hive/conf/hive-site.xml
+    networks:
+      - hive-net
+
   # postgres:
   #   image: postgres:13
   #   container_name: postgres
@@ -107,13 +129,15 @@ services:
       - "7077:7077"
     volumes:
       - ./spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
+      - ./spark/python_script:/opt/bitnami/spark/python_script
     depends_on:
       - hive-metastore
       - minio
     networks:
         - hive-net
 
-# volumes:
+volumes:
+  spark:
   # minio_data:
   # postgres_data:
   # trino_config:
