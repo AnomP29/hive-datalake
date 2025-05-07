@@ -1,10 +1,8 @@
 #!/bin/bash
-
 set -e
 
 export HIVE_METASTORE_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000"
 
-# Set the password environment variable
 export PGPASSWORD="$HIVE_DB_PASSWORD"
 
 # Wait for PostgreSQL to be ready
@@ -15,8 +13,9 @@ done
 
 echo "PostgreSQL is ready"
 
-# /opt/hive/bin/hiveserver2 &
-# exec "$@"
+# Ensure /tmp/hive exists in HDFS and is writable
+hdfs dfs -mkdir -p /tmp/hive || true
+hdfs dfs -chmod 1777 /tmp/hive || true
 
-echo "Starting Hive hive-Server2..."
-exec /opt/hive/bin/hive --service hiveserver2
+echo "....Starting HiveServer2..."
+exec /opt/hive/bin/hiveserver2 --service hiveserver2
