@@ -25,7 +25,7 @@
   <!-- Metastore Thrift URI (used by HiveServer2) -->
   <property>
   <name>hive.metastore.uris</name>
-    <value>thrift://172.18.0.2:9083</value>
+    <value>thrift://hive-metastore:9083</value>
   </property>
 
   <!-- HiveServer2 binding settings -->

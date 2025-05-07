@@ -21,6 +21,7 @@ services:
     container_name: hive-metastore
     ports:
       - "9083:9083"
+    hostname: hive-metastore
     environment:
       - HIVE_METASTORE_URI=thrift://hive-metastore:9083
       - HIVE_METASTORE_HOST=hive-metastore
