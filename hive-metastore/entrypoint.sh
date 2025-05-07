@@ -29,11 +29,8 @@ if /opt/hive/bin/schematool -dbType postgres -info; then
   echo "Hive Metastore schema already initialized."
 else
   echo "Schema not found. Initializing Hive Metastore schema..."
-  /opt/hive/bin/schematool -dbType postgres -initSchema
+  /opt/hive/bin/schematool -dbType postgres -initSchema --verbose
 fi
-
-# /opt/hive/bin/hiveserver2 &
-# exec "$@"
 
 echo "Starting Hive Metastore..."
 exec /opt/hive/bin/hive --service metastore

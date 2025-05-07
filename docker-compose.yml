@@ -15,20 +15,23 @@ services:
       - hive-net
 
   hive-metastore:
+    hostname: hive-metastore
     build:
       context: .  # this includes hive-server/ and utils/
       dockerfile: hive-metastore/Dockerfile
     container_name: hive-metastore
     ports:
       - "9083:9083"
-    hostname: hive-metastore
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       - HIVE_METASTORE_URI=thrift://hive-metastore:9083
       - HIVE_METASTORE_HOST=hive-metastore
       - HIVE_METASTORE_PORT=9083
       - HIVE_DB_HOST=172.27.16.1
       - HIVE_DB_PORT=5432
-      - HIVE_DB_NAME=metastore
+      - HIVE_DB_NAME=metastore2
       - HIVE_DB_USER=postgres
       - HIVE_DB_PASSWORD=postgres    
     # depends_on:
@@ -37,7 +40,7 @@ services:
       - hive-net
     command: ["/opt/hive/bin/hive", "--service", "metastore"]
     volumes:
-      - ./hive-metastore/hive-site.xml:/opt/hive/conf/hive-site.xml
+      - ./config/hive-site.xml:/opt/hive/conf/hive-site.xml
 
   hive-server:
     # image: apache/hive:3.1.3
@@ -51,17 +54,17 @@ services:
       - "10000:10000"  # Ensure port 10000 is exposed to the host
     environment:
       HIVE_SERVER2_THRIFT_PORT: 10000
-      HIVE_METASTORE_URI: thrift://localhost:9083
+      HIVE_METASTORE_URI: thrift://172.18.0.2:9083
       HIVE_DB_HOST: 172.27.16.1
       HIVE_DB_PORT: 5432
-      HIVE_DB_NAME: metastore
+      HIVE_DB_NAME: metastore2
       HIVE_DB_USER: postgres
       HIVE_DB_PASSWORD: postgres    
     # command: ["/opt/hive/bin/hiveserver2", "--service", "hiveserver2"]
     networks:
       - hive-net
     volumes:
-      - ./hive-server/hive-site.xml:/opt/hive/conf/hive-site.xml
+      - ./config/hive-site.xml:/opt/hive/conf/hive-site.xml
   # postgres:
   #   image: postgres:13
   #   container_name: postgres
@@ -140,8 +143,8 @@ services:
     networks:
         - hive-net
 
-volumes:
-  spark:
+# volumes:
+#   spark:
   # minio_data:
   # postgres_data:
   # trino_config:

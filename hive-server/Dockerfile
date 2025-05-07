@@ -21,7 +21,8 @@ USER root
 RUN apt-get update && apt-get install -y procps && \
     apt-get install -y curl postgresql-client \
     netcat \
-    net-tools && \
+    net-tools \
+    iputils-ping && \
     rm -rf /var/lib/apt/lists/* && \
     # Remove unnecessary SLF4J bindings (log4j-slf4j-impl)
     rm -f /opt/hive/lib/log4j-slf4j-impl-*.jar && \
@@ -52,7 +53,7 @@ ADD https://repo1.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar /o
 RUN chmod -R 777 /opt/hive/conf
 
 COPY hive-server/entrypoint.sh /entrypoint.sh
-COPY hive-server/hive-site.xml /opt/hive/conf/hive-site.xml
+COPY config/hive-site.xml /opt/hive/conf/hive-site.xml
 COPY hive-server/utils/log4j2.properties /opt/hive/conf/hive-log4j2.properties
 RUN chmod 644 /opt/hive/conf/hive-log4j2.properties
 RUN chmod +x /entrypoint.sh

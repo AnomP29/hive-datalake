@@ -2,7 +2,7 @@
   <!-- PostgreSQL Metastore DB Config -->
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:postgresql://172.27.16.1:5432/metastore</value>
+    <value>jdbc:postgresql://172.27.16.1:5432/metastore2</value>
   </property>
 
   <property>
@@ -103,6 +103,63 @@
   <property>
     <name>hive.metastore.transactional.event.listeners</name>
     <value>org.apache.hive.hcatalog.listener.DbNotificationListener</value>
+  </property>
+
+  <!-- Hive-server config -->
+  <property>
+    <name>hive.server2.thrift.bind.host</name>
+    <value>0.0.0.0</value>
+  </property>
+
+  <property>
+    <name>hive.server2.thrift.port</name>
+    <value>10000</value>
+  </property>
+
+  <property>
+    <name>hive.server2.transport.mode</name>
+    <value>binary</value>
+  </property>
+
+  <!-- Optional logging directory -->
+  <property>
+    <name>hive.exec.local.scratchdir</name>
+    <value>/tmp/hive</value>
+  </property>
+
+  <property>
+    <name>hive.querylog.location</name>
+    <value>/tmp/hive</value>
+  </property>
+
+  <property>
+    <name>hive.txn.manager</name>
+    <value>org.apache.hadoop.hive.ql.lockmgr.DbTxnManager</value>
+  </property>
+
+  <property>
+    <name>hive.support.concurrency</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.metastore.transactional</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.metastore.notification.listener</name>
+    <value>org.apache.hadoop.hive.metastore.messaging.EventMessageHandler</value>
+  </property>
+
+  <property>
+    <name>hive.metastore.notification.polling.interval</name>
+    <value>1000</value>
+  </property>
+
+  <property>
+    <name>hive.metastore.event.db.notification.api.auth</name>
+    <value>false</value>
   </property>
 
 </configuration>

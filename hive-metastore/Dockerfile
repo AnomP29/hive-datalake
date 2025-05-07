@@ -62,7 +62,7 @@ ADD https://repo1.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar /o
 RUN chmod -R 777 /opt/hive/conf
 
 COPY hive-metastore/entrypoint.sh /entrypoint.sh
-COPY hive-metastore/hive-site.xml /opt/hive/conf/hive-site.xml
+COPY config/hive-site.xml /opt/hive/conf/hive-site.xml
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
