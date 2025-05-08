@@ -11,8 +11,8 @@ services:
       MINIO_ROOT_USER : minioadmin
       MINIO_ROOT_PASSWORD : minioadmin
     command: server /data --console-address ":9001"
-    networks:
-      - hive-net
+    # networks:
+    #   - hive-net
 
   hive-metastore:
     hostname: hive-metastore
@@ -22,6 +22,7 @@ services:
       dockerfile: hive-metastore/Dockerfile
     ports:
       - "9083:9083"
+      - "10000:10000"
     environment:
       HIVE_METASTORE_URI: thrift://hive-metastore:9083
       HIVE_METASTORE_HOST: hive-metastore
@@ -31,35 +32,13 @@ services:
       HIVE_DB_NAME: metastore2
       HIVE_DB_USER: postgres
       HIVE_DB_PASSWORD: postgres
-    command: ["/opt/hive/bin/hive", "--service", "metastore"]
+    # command: ["/opt/hive/bin/hive", "--service", "metastore"]
+    command: bash /opt/hive/conf/hive-site.xml
     volumes:
       - ./config/hive-site.xml:/opt/hive/conf/hive-site.xml
-    networks:
-      - hive-net
+    # networks:
+    #   - hive-net
 
-  hive-server:
-    hostname: hive-server
-    container_name: hive-server
-    build:
-      context: .
-      dockerfile: hive-server/Dockerfile
-    depends_on:
-      - hive-metastore
-    ports:
-      - "10000:10000"
-    environment:
-      HIVE_SERVER2_THRIFT_PORT: 10000
-      HIVE_METASTORE_URI: thrift://hive-metastore:9083
-      HIVE_DB_HOST: 172.27.16.1
-      HIVE_DB_PORT: 5432
-      HIVE_DB_NAME: metastore2
-      HIVE_DB_USER: postgres
-      HIVE_DB_PASSWORD: postgres
-    volumes:
-      - ./config/hive-site.xml:/opt/hive/conf/hive-site.xml
-    networks:
-      - hive-net  
-      
   # postgres:
   #   image: postgres:13
   #   container_name: postgres
@@ -106,18 +85,6 @@ services:
   #   networks:
   #       - hive-net
   
-  # superset-db:
-  #   image: postgres:13
-  #   container_name: superset-db
-  #   environment:
-  #     POSTGRES_USER: superset
-  #     POSTGRES_PASSWORD: superset
-  #     POSTGRES_DB: superset
-  #   volumes:
-  #     - superset_db_data:/var/lib/postgresql/data
-  #   networks:
-  #     - hive-net
-
   spark:
     build: ./spark
     container_name: spark
@@ -135,8 +102,8 @@ services:
     depends_on:
       - hive-metastore
       - minio
-    networks:
-        - hive-net
+    # networks:
+    #     - hive-net
 
 # volumes:
 #   spark:
@@ -146,7 +113,7 @@ services:
   # superset_db_data:
 
 networks:
-  hive-net:
+  hive-net-2:
     # name: hive-net
-    external: true
-    # driver: bridge
+    # external: true
+    driver: bridge

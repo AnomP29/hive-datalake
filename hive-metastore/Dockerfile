@@ -10,14 +10,17 @@ RUN mkdir -p /tmp/hive && \
     chown hive:hive /tmp/hive
 
 # Expose necessary ports
-EXPOSE 9083
+EXPOSE 9083 10000
 
 # Switch to root to install packages
 USER root
 
 # Install postgresql-client and clean up
 RUN apt-get update && apt-get install -y procps && \
-    apt-get install -y curl postgresql-client && \
+    apt-get install -y curl postgresql-client \
+    netcat \
+    net-tools \
+    iputils-ping && \
     rm -rf /var/lib/apt/lists/* && \
     # Remove unnecessary SLF4J bindings (log4j-slf4j-impl)
     rm -f /opt/hive/lib/log4j-slf4j-impl-*.jar && \
@@ -63,11 +66,9 @@ RUN chmod -R 777 /opt/hive/conf
 
 COPY hive-metastore/entrypoint.sh /entrypoint.sh
 COPY config/hive-site.xml /opt/hive/conf/hive-site.xml
+
+COPY hive-server/utils/log4j2.properties /opt/hive/conf/hive-log4j2.properties
+RUN chmod 644 /opt/hive/conf/hive-log4j2.properties
+
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-
-# Optionally switch back to hive user
-# USER hive
-
-
-# CMD ["--service", "metastore"]

@@ -32,5 +32,10 @@ else
   /opt/hive/bin/schematool -dbType postgres -initSchema --verbose
 fi
 
-echo "Starting Hive Metastore..."
-exec /opt/hive/bin/hive --service metastore
+echo "...Starting Hive Metastore..."
+/opt/hive/bin/hive --service metastore &
+
+sleep 10  # Give metastore time to bind
+
+echo "...Starting Hive Hiveserver..."
+/opt/hive/bin/hive --service hiveserver2
