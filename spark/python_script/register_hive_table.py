@@ -9,7 +9,7 @@ spark = SparkSession.builder \
 # SQL: Create external table pointing to S3/MinIO
 spark.sql("""
 CREATE EXTERNAL TABLE IF NOT EXISTS nyc_taxi_partitioned (
-    VendorID BIGINT,
+    VendorID bigint,
     tpep_pickup_datetime TIMESTAMP,
     tpep_dropoff_datetime TIMESTAMP,
     passenger_count INT,
