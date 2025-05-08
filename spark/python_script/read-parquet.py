@@ -33,12 +33,12 @@ df_partitioned = df.withColumn("pickup_date", to_date(col(pickup_col))) \
 # Write partitioned Parquet to MinIO
 output_path = "s3a://nyc-taxi/partitioned/yellow/trip-data/"
 
-df_clean = df_partitioned.withColumn("VendorID", col("VendorID").cast(IntegerType())) \
+df_clean = df_partitioned.withColumn("VendorID", col("VendorID").cast("long")) \
              .withColumn("passenger_count", col("passenger_count").cast(IntegerType())) \
              .withColumn("RatecodeID", col("RatecodeID").cast(IntegerType())) \
              .withColumn("PULocationID", col("PULocationID").cast(IntegerType())) \
              .withColumn("DOLocationID", col("DOLocationID").cast(IntegerType())) \
-             .withColumn("payment_type", col("payment_type").cast(IntegerType()))
+             .withColumn("payment_type", col("payment_type").cast(IntegerType())) 
 
 df_clean.write \
     .mode("overwrite") \
