@@ -12,7 +12,7 @@ services:
       MINIO_ROOT_PASSWORD : minioadmin
     command: server /data --console-address ":9001"
     networks:
-      - hive-net-2
+      - datalake-net
 
   hive-metastore:
     hostname: hive-metastore
@@ -37,7 +37,7 @@ services:
     volumes:
       - ./config/hive-site.xml:/opt/hive/conf/hive-site.xml
     networks:
-      - hive-net-2
+      - datalake-net
 
   trino:
     build:
@@ -49,11 +49,12 @@ services:
       - "8080:8080"
     depends_on:
       - hive-metastore
-    volumes:
-      - ./trino/etc/:/etc/trino
-      - ./trino/etc/core-site.xml:/etc/trino/etc/catalog/core-site.xml
+    # volumes:
+    #   - ./trino/etc:/usr/lib/trino/etc
+    #   - ./trino/catalog:/usr/lib/trino/etc/catalog
+      # - ./trino/etc/hadoop/core-site.xml:/etc/hadoop/conf/core-site.xml    
     networks:
-      - hive-net-2
+      - datalake-net
 
   # superset:
   #   build: ./superset
@@ -93,7 +94,7 @@ services:
       - hive-metastore
       - minio
     networks:
-        - hive-net-2
+      - datalake-net
 
 # volumes:
 #   spark:
@@ -103,7 +104,5 @@ services:
   # superset_db_data:
 
 networks:
-  hive-net-2:
-    # name: hive-net
-    # external: true
-    driver: bridge
+  datalake-net:
+    external: true

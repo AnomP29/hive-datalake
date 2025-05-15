@@ -18,6 +18,7 @@ USER root
 # Install postgresql-client and clean up
 RUN apt-get update && apt-get install -y procps && \
     apt-get install -y curl postgresql-client \
+    awscli \
     netcat \
     net-tools \
     iputils-ping && \
@@ -27,6 +28,19 @@ RUN apt-get update && apt-get install -y procps && \
     rm -f /opt/hive/lib/slf4j-log4j12-*.jar && \
     rm -f /opt/hive/lib/slf4j-api-*.jar && \
     rm -f /opt/hive/lib/slf4j-jdk14-*.jar 
+
+# Set environment variables for AWS CLI config location
+ENV AWS_CONFIG_FILE=${HIVE_HOME}/.aws/config
+ENV AWS_SHARED_CREDENTIALS_FILE=${HIVE_HOME}/.aws/credentials
+
+# Create the AWS config and credentials files with MinIO details
+RUN mkdir -p ${HIVE_HOME}/.aws && \
+    echo "[default]" > ${HIVE_HOME}/.aws/credentials && \
+    echo "aws_access_key_id = minioadmin" >> ${HIVE_HOME}/.aws/credentials && \
+    echo "aws_secret_access_key = minioadmin" >> ${HIVE_HOME}/.aws/credentials && \
+    echo "[default]" > ${HIVE_HOME}/.aws/config && \
+    echo "region = asia-sea-1" >> ${HIVE_HOME}/.aws/config && \
+    echo "output = json" >> ${HIVE_HOME}/.aws/config
 
 # Ensure correct ownership of the Hive home directory
 RUN mkdir -p /home/hive/.beeline && \
