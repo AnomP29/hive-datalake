@@ -1,39 +1,55 @@
-FROM apache/hive:3.1.3
+FROM openjdk:8-jdk-slim
 
-# Set environment variables for Hive and Hadoop
-ENV HIVE_HOME=/opt/hive
-ENV HADOOP_HOME=/opt/hadoop
+ENV HIVE_VERSION=3.1.3 \
+    HADOOP_VERSION=3.3.1 \
+    HIVE_HOME=/opt/hive \
+    HADOOP_HOME=/opt/hadoop \
+    PATH="/opt/hive/bin:$PATH"
 
-# Run necessary initialization commands (fix permissions on HDFS)
-RUN mkdir -p /tmp/hive && \
-    chmod 1777 /tmp/hive && \
-    chown hive:hive /tmp/hive
-
-# Expose necessary ports
-EXPOSE 9083 10000
-
-# Switch to root to install packages
-USER root
-
-# Install postgresql-client and clean up
-RUN apt-get update && apt-get install -y procps && \
-    apt-get install -y curl postgresql-client \
-    awscli \
+# Install required packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    postgresql-client \
+    procps \
     netcat \
-    net-tools \
-    iputils-ping && \
-    rm -rf /var/lib/apt/lists/* && \
-    # Remove unnecessary SLF4J bindings (log4j-slf4j-impl)
-    rm -f /opt/hive/lib/log4j-slf4j-impl-*.jar && \
-    rm -f /opt/hive/lib/slf4j-log4j12-*.jar && \
-    rm -f /opt/hive/lib/slf4j-api-*.jar && \
-    rm -f /opt/hive/lib/slf4j-jdk14-*.jar 
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables for AWS CLI config location
-ENV AWS_CONFIG_FILE=${HIVE_HOME}/.aws/config
-ENV AWS_SHARED_CREDENTIALS_FILE=${HIVE_HOME}/.aws/credentials
+# Download and install Hive
+RUN curl -fsSL https://archive.apache.org/dist/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz | \
+    tar -xz -C /opt && mv /opt/apache-hive-${HIVE_VERSION}-bin ${HIVE_HOME}
 
-# Create the AWS config and credentials files with MinIO details
+# Download and install Hadoop minimal set
+RUN curl -fsSL https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | \
+    tar -xz -C /opt && mv /opt/hadoop-${HADOOP_VERSION} ${HADOOP_HOME} && \
+    rm -rf ${HADOOP_HOME}/share/doc \
+           ${HADOOP_HOME}/share/hadoop/tools/lib/*  \
+           ${HADOOP_HOME}/share/hadoop/mapreduce/*examples* \
+           ${HADOOP_HOME}/share/hadoop/yarn/*test* \
+           ${HADOOP_HOME}/share/hadoop/hdfs/*test*
+
+# Add AWS S3 support jars
+RUN curl -fsSL https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.2.0/hadoop-aws-3.2.0.jar -o ${HIVE_HOME}/lib/hadoop-aws.jar && \
+    curl -fsSL https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.901/aws-java-sdk-bundle-1.11.901.jar -o ${HIVE_HOME}/lib/aws-java-sdk-bundle.jar && \
+    curl -fsSL https://repo1.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar -o ${HIVE_HOME}/lib/guava-19.0.jar
+
+
+RUN rm -f /opt/hive/lib/log4j-slf4j-impl-*.jar \
+    && rm -f /opt/hive/lib/slf4j-log4j12-*.jar \
+    && rm -f /opt/hive/lib/slf4j-api-*.jar \
+    && rm -f /opt/hive/lib/slf4j-jdk14-*.jar \
+    && rm -f /opt/hive/lib/log4j-1.2*.jar
+
+# Add required Log4j 2 libraries
+RUN curl -L -o /opt/hive/lib/log4j-api-2.17.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar && \
+    curl -L -o /opt/hive/lib/log4j-core-2.17.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar && \
+    curl -L -o /opt/hive/lib/log4j-slf4j-impl-2.17.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-slf4j-impl/2.17.1/log4j-slf4j-impl-2.17.1.jar
+
+# Add PostgreSQL JDBC
+RUN curl -fsSL https://jdbc.postgresql.org/download/postgresql-42.7.3.jar -o ${HIVE_HOME}/lib/postgresql-42.7.3.jar
+
+# Add AWS credentials for MinIO
 RUN mkdir -p ${HIVE_HOME}/.aws && \
     echo "[default]" > ${HIVE_HOME}/.aws/credentials && \
     echo "aws_access_key_id = minioadmin" >> ${HIVE_HOME}/.aws/credentials && \
@@ -42,42 +58,14 @@ RUN mkdir -p ${HIVE_HOME}/.aws && \
     echo "region = asia-sea-1" >> ${HIVE_HOME}/.aws/config && \
     echo "output = json" >> ${HIVE_HOME}/.aws/config
 
-# Ensure correct ownership of the Hive home directory
-RUN mkdir -p /home/hive/.beeline && \
-    chown -R hive:hive /home/hive
-
-RUN mkdir -p /user/hive/warehouse && \
-    chmod 1777 /user/hive/warehouse && \
-    chown hive:hive /user/hive/warehouse
-
-# Add necessary libraries (PostgreSQL, Hadoop, and AWS SDK)
-ADD https://jdbc.postgresql.org/download/postgresql-42.7.3.jar /opt/hive/lib/
-
-# Download Hadoop (with third-party dependencies) and extract
-# RUN curl -O https://archive.apache.org/dist/hadoop/common/hadoop-3.3.1/hadoop-3.3.1.tar.gz && \
-#     tar -xzvf hadoop-3.3.1.tar.gz -C /opt/hadoop
-# RUN tar -xzvf /utils/lib/hadoop-3.3.1.tar.gz -C /opt/hadoop
-COPY /utils/lib/hadoop-3.3.1.tar.gz /utils/lib/hadoop-3.3.1.tar.gz
-RUN tar -xzvf /utils/lib/hadoop-3.3.1.tar.gz -C /opt/hadoop
-
-COPY utils/lib/hadoop-aws-3.2.0.jar /opt/hive/lib/hadoop-aws-3.2.0.jar
-COPY utils/lib/aws-java-sdk-bundle-1.11.901.jar /opt/hive/lib/aws-java-sdk-bundle-1.11.901.jar
-# RUN curl -L -o /opt/hive/lib/hadoop-aws-3.2.0.jar https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.2.0/hadoop-aws-3.2.0.jar && \
-#     curl -L -o /opt/hive/lib/aws-java-sdk-bundle-1.11.901.jar https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.901/aws-java-sdk-bundle-1.11.901.jar
-
-# Add Guava 19.0 (Hadoop 3.3.x Compatibility)
-ADD https://repo1.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar /opt/hive/lib/
-
-
-
-# Change permissions to allow hive user to write to hive-site.xml
-RUN chmod -R 777 /opt/hive/conf
-
+# Add hive-site.xml and entrypoint
+COPY config/hive-site.xml ${HIVE_HOME}/conf/hive-site.xml
+COPY hive-metastore/conf/log4j2.properties ${HIVE_HOME}/conf/hive-log4j2.properties
 COPY hive-metastore/entrypoint.sh /entrypoint.sh
-COPY config/hive-site.xml /opt/hive/conf/hive-site.xml
 
-COPY hive-server/utils/log4j2.properties /opt/hive/conf/hive-log4j2.properties
-RUN chmod 644 /opt/hive/conf/hive-log4j2.properties
+RUN chmod +x /entrypoint.sh && chmod 644 ${HIVE_HOME}/conf/*.xml ${HIVE_HOME}/conf/*.properties
 
-RUN chmod +x /entrypoint.sh
+# Ports: Hive Metastore (9083), HiveServer2 (10000)
+EXPOSE 9083 10000
+
 ENTRYPOINT ["/entrypoint.sh"]

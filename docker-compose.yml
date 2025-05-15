@@ -89,7 +89,7 @@ services:
       - "7077:7077"
     volumes:
       - ./spark/conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-      - ./spark/python_script:/opt/bitnami/spark/python_script
+      - ./spark/python_script:/app/python_script
     depends_on:
       - hive-metastore
       - minio
