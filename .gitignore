@@ -1,4 +1,4 @@
 minio-data/
 venv/
-utils/
+lib/
 trino/etc/utils/

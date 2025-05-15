@@ -56,25 +56,25 @@ services:
     networks:
       - datalake-net
 
-  # superset:
-  #   build: ./superset
-  #   container_name: superset
-  #   ports:
-  #     - "8088:8088"
-  #   environment:
-  #     SUPERSET_SECRET_KEY: supersecret
-  #     SQLALCHEMY_DATABASE_URI: postgresql://postgres:postgres@172.27.16.1:5432/superset
-  #   entrypoint:
-  #   - /bin/bash
-  #   - -c
-  #   - |
-  #     /init-superset-db.sh
-  #   # depends_on:
-  #   #   - superset-db
-  #   volumes:
-  #     - ./superset/superset_config.py:/app/pythonpath/superset_config.py
-  #   networks:
-  #       - hive-net
+  superset:
+    build: ./superset
+    container_name: superset
+    ports:
+      - "8088:8088"
+    environment:
+      SUPERSET_SECRET_KEY: supersecret
+      SQLALCHEMY_DATABASE_URI: postgresql://postgres:postgres@172.27.16.1:5432/superset
+    entrypoint:
+    - /bin/bash
+    - -c
+    - |
+      /init-superset-db.sh
+    # depends_on:
+    #   - superset-db
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+    networks:
+      - datalake-net
   
   spark:
     build: ./spark
