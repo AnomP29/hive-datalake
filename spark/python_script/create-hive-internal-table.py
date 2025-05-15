@@ -48,7 +48,8 @@ try:
         .withColumn("year", year(col("pickup_date")).cast("string")) \
         .withColumn("month", format_string("%02d", month(col("pickup_date")))) \
         .withColumn("day", format_string("%02d", dayofmonth(col("pickup_date"))))
-    # df_partitioned.printSchema()
+
+    df_partitioned.printSchema()
 except Exception as e:
     print(e)
 
@@ -61,100 +62,28 @@ columns_ddl = ",\n    ".join([f"{f.name} {f.dataType.simpleString()}" for f in b
 # partition_cols = ["pickup_date DATE"]
 # df_partitioned.printSchema()
 
-table_schema = spark.table("nyc_taxi_trip").schema
-ordered_columns = [f.name for f in table_schema if f.name in df_partitioned.columns]
-df_ordered = df_partitioned.select(*ordered_columns)
 
 # print(table_schema)
 # df_ordered.printSchema()
 
-# create_table_sql = f"""
-# CREATE TABLE IF NOT EXISTS nyc_taxi_trip (
-#     {columns_ddl}
-# )
-# PARTITIONED BY (
-#     pickup_date DATE
-# )
-# STORED AS PARQUET
-# """
-# df_partitioned.select("pickup_date").show(truncate=False)
-
-# try:
-#     # print(create_table_sql)
-#     print('Creating Tables')
-#     spark.sql(create_table_sql)
-# except Exception as e:
-#     print(e)
-
-# Before writing Parquet
-# spark.conf.set("spark.sql.parquet.outputTimestampType", "TIMESTAMP_MICROS")
-
-
-# SQL: Create external table pointing to S3/MinIO
-# spark.sql("""
-# CREATE TABLE IF NOT EXISTS nyc_taxi_trip (
-#     VendorID bigint,
-#     tpep_pickup_datetime TIMESTAMP,
-#     tpep_dropoff_datetime TIMESTAMP,
-#     passenger_count INT,
-#     trip_distance DOUBLE,
-#     RatecodeID INT,
-#     store_and_fwd_flag STRING,
-#     PULocationID INT,
-#     DOLocationID INT,
-#     payment_type INT,
-#     fare_amount DOUBLE,
-#     extra DOUBLE,
-#     mta_tax DOUBLE,
-#     tip_amount DOUBLE,
-#     tolls_amount DOUBLE,
-#     improvement_surcharge DOUBLE,
-#     total_amount DOUBLE,
-#     congestion_surcharge DOUBLE,
-#     airport_fee DOUBLE,
-#     pickup_date date, 
-#     year date, 
-#     month date, 
-#     day date
-# )
-# PARTITIONED BY (
-#     pickup_date date
-# )
-# STORED AS PARQUET
-# -- LOCATION 's3a://nyc-taxi/partitioned/yellow/trip-data/'
-# """)
-# Insert data into Hive table
-# df_partitioned.select("pickup_date").show(10, truncate=False)
+create_table_sql = f"""
+CREATE EXTERNAL TABLE IF NOT EXISTS nyc_taxi_trip (
+    {columns_ddl}
+)
+PARTITIONED BY (
+    pickup_date DATE
+)
+STORED AS PARQUET
+LOCATION 's3a://nyc-taxi/partitioned/yellow/trip-data/'
+"""
 
 try:
-    print("Writing data into Hive table...")
-    df_ordered.write.mode("overwrite").insertInto("nyc_taxi_trip")
+    # print(create_table_sql)
+    print('Creating Tables')
+    spark.sql(create_table_sql)
 except Exception as e:
-    print(f"Error inserting data: {e}")
+    print(e)
 
-# Optional: Query to verify
-try:
-    print("Previewing data:")
-    count_sql = '''
-    SELECT pickup_date, count(1) pickup_count 
-    FROM nyc_taxi_trip 
-    -- WHERE CAST(pickup_date AS STRING)='2020-01-05'
-    GROUP BY 1 
-    ORDER BY pickup_date
-    '''
-    spark.sql(count_sql).show(truncate=False)
-except Exception as e:
-    print(f"Error querying table: {e}")
-    
-# Repair to detect partitions
-# spark.sql("MSCK REPAIR TABLE nyc_taxi_partitioned")
-
-# Optional: show some rows
-# spsql = """
-#  SELECT * FROM nyc_taxi_partitioned LIMIT 10";
-#  -- DESCRIBE nyc_taxi_trip;
-# """
-# df = spark.sql(spsql)
-# df.show(truncate=False)
-
-spark.stop()
+# table_schema = spark.table("nyc_taxi_trip").schema
+# ordered_columns = [f.name for f in table_schema if f.name in df_partitioned.columns]
+# df_ordered = df_partitioned.select(*ordered_columns)
