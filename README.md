@@ -1,6 +1,11 @@
-# trino_dev
+# Build Datalake data from nyc_taxi_trip
 
-1. Minio
-2. Apache-hive
-3. Trino
-4. Superset
+## Technologies:
+
+- **Container:** docker-compose
+- **Storage:** MinIO
+- **Format:** Parquet
+- **Table Format:** Apache Hive
+- **Query Engine:** Apache Spark, Trino
+- **Catalog:** Hive Metastore
+- **BI Tool:** Apache Superset
