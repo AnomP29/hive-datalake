@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     procps \
     netcat \
     iputils-ping \
+    awscli \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install Hive

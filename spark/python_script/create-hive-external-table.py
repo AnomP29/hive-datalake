@@ -33,7 +33,7 @@ spark.conf.set("hive.exec.dynamic.partition.mode", "nonstrict")
 input_path = "s3a://nyc-taxi/raw/yellow_tripdata_*.parquet"
 
 # Path to output partitioned parquet folder on MinIO
-output_path = "s3a://nyc-taxi/trip-data/yellow_test/"
+output_path = "s3a://nyc-taxi/trip-data/yellow/"
 
 # Read Parquet files
 df = spark.read.parquet(input_path)
@@ -69,15 +69,6 @@ partition_cols = {"pickup_date"}
 base_columns = [f for f in df_partitioned.schema.fields if f.name not in partition_cols]
 columns_ddl = ",\n    ".join([f"{f.name} {f.dataType.simpleString()}" for f in base_columns])
 
-# create_table_sql = f"""
-# CREATE EXTERNAL TABLE test_dummy_table (
-#   id INT
-# )
-# STORED AS PARQUET
-# LOCATION 's3a://nyc-taxi/some-fake-path/'
-# ;
-# """
-
 # Create external Hive table pointing to the written data
 create_table_sql = f"""
 CREATE EXTERNAL TABLE IF NOT EXISTS nyc_taxi_trip_yellow (
@@ -89,6 +80,7 @@ PARTITIONED BY (
 STORED AS PARQUET
 LOCATION '{output_path}'
 """
+spark.sql(create_table_sql)
 # spark.catalog.createTable(
 #     tableName="nyc_taxi_trip_yellow_test",
 #     source="parquet",
@@ -108,7 +100,7 @@ except Exception as e:
 
 spark.sql("SHOW TABLES").show()
 # print("Creating Hive external table...")
-spark.sql(create_table_sql)
+
 
 # print("Repairing table to discover partitions...")
 # spark.sql("MSCK REPAIR TABLE nyc_taxi_trip_yellow")
