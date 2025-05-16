@@ -2,3 +2,4 @@ minio-data/
 venv/
 lib/
 trino/etc/utils/
+.env
