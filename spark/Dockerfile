@@ -3,12 +3,17 @@ FROM bitnami/spark:3.5.0
 USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
+# Environment variables
+ENV SPARK_HOME=/opt/bitnami/spark
+ENV HADOOP_HOME=/opt/bitnami/spark
+ENV HIVE_HOME=/opt/bitnami/hive/lib
 
 # Install Python and dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     curl \
+    iputils-ping \
     libsnappy-dev \
     liblzo2-dev \
     liblz4-dev && \
@@ -28,10 +33,10 @@ RUN mkdir -p /opt/bitnami/spark/jars /opt/bitnami/hive/lib && \
     curl -L -o /opt/bitnami/hive/lib/hadoop-aws-3.2.0.jar https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.2.0/hadoop-aws-3.2.0.jar && \
     curl -L -o /opt/bitnami/hive/lib/aws-java-sdk-bundle-1.11.901.jar https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.901/aws-java-sdk-bundle-1.11.901.jar
 
-# Environment variables
-ENV SPARK_HOME=/opt/bitnami/spark
-ENV HADOOP_HOME=/opt/bitnami/spark
-ENV HIVE_HOME=/opt/bitnami/hive/lib
+
+# COPY /lib/hadoop-aws-3.2.0.jar ${SPARK_HOME}/lib/hadoop-aws-3.2.0.jar
+# COPY /lib/aws-java-sdk-bundle-1.11.901.jar ${SPARK_HOME}/lib/aws-java-sdk-bundle-1.11.901.jar
+
 
 WORKDIR /app
 COPY ./conf/spark-defaults.conf /opt/bitnami/spark/conf/spark-defaults.conf
