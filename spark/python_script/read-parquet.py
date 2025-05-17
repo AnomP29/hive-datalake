@@ -6,11 +6,12 @@ from pyspark.sql.types import IntegerType
 # Create Spark session with MinIO config
 spark = SparkSession.builder \
     .appName("ReadFromMinIO") \
+    .master("spark://spark:7077") \
     .enableHiveSupport() \
     .getOrCreate()
 
 # Path to the Parquet file/folder in MinIO
-s3a_path = "s3a://nyc-taxi/raw/yellow_tripdata_*.parquet"
+s3a_path = "s3a://nyc-taxi/raw/yellow_tripdata_2021-01.parquet"
 
 # Read Parquet file
 df = spark.read.parquet(s3a_path)
@@ -40,10 +41,11 @@ df_clean = df_partitioned.withColumn("VendorID", col("VendorID").cast("long")) \
              .withColumn("DOLocationID", col("DOLocationID").cast(IntegerType())) \
              .withColumn("payment_type", col("payment_type").cast(IntegerType())) 
 
-df_clean.write \
-    .mode("overwrite") \
-    .partitionBy("year", "month", "day") \
-    .parquet(output_path)
+df_clean.show()
+# df_clean.write \
+#     .mode("overwrite") \
+#     .partitionBy("year", "month", "day") \
+#     .parquet(output_path)
 
 # # Write partitioned Parquet to Hive Table
 # df_clean.write \

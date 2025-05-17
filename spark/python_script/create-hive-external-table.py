@@ -14,6 +14,7 @@ import re
 
 builder = SparkSession.builder \
     .appName("MyApp") \
+    .master("spark://spark:7077") \
     .enableHiveSupport()
 
 # add this *before* .getOrCreate()
@@ -56,6 +57,7 @@ canonical_schema = StructType([
 
 # Load all file paths using Spark
 all_files_df = spark.read.format("binaryFile").load("s3a://nyc-taxi/raw/")
+
 print('Get file bucket')
 # Filter only Parquet files starting with yellow_tripdata_YYYY-MM.parquet
 parquet_files = (
@@ -66,8 +68,8 @@ parquet_files = (
     .collect()
 )
 
+# Read, Cast, and Union
 dfs = []
-
 for file_path in parquet_files:
     try:
         df_part = spark.read.parquet(file_path)
@@ -79,10 +81,10 @@ for file_path in parquet_files:
         dfs.append(df_part.select([f.name for f in canonical_schema.fields]))
     except Exception as e:
         print(f"Skipping {file_path}: {e}")
+
 # Path to input parquet files on MinIO
 # input_path = "s3a://nyc-taxi/raw/yellow_tripdata_*.parquet"
 
-# Read, Cast, and Union
 print('Read, Cast, and Union')
 from functools import reduce
 
@@ -92,28 +94,8 @@ df = reduce(lambda a, b: a.unionByName(b), dfs)
 # Path to output partitioned parquet folder on MinIO
 output_path = "s3a://nyc-taxi/trip-data/yellow/"
 
-
-# Read Parquet files
-# df = spark.read \
-#     .option("mergeSchema", "true") \
-#     .schema(canonical_schema) \
-#     .parquet(input_path)
-
-# expected_columns = [f.name for f in canonical_schema]
-# for col_name in df.columns:
-#     if col_name.lower() in [x.lower() for x in expected_columns] and col_name not in expected_columns:
-#         df = df.withColumnRenamed(col_name, col_name.lower())
-
 # Determine pickup datetime column
 pickup_col = "tpep_pickup_datetime" if "tpep_pickup_datetime" in df.columns else df.columns[0]
-
-# def align_schema(df, expected_schema):
-#     for col_name, expected_type in expected_schema.items():
-#         if col_name in df.columns:
-#             df = df.withColumn(col_name, col(col_name).cast(expected_type))
-#     return df
-
-# df = align_schema(df, expected_schema)
 
 # Cast TimestampNTZ columns to Timestamp (if any)
 for field in df.schema.fields:
@@ -154,12 +136,7 @@ PARTITIONED BY (
 STORED AS PARQUET
 LOCATION '{output_path}'
 """
-spark.sql(create_table_sql)
-# spark.catalog.createTable(
-#     tableName="nyc_taxi_trip_yellow_test",
-#     source="parquet",
-#     path="s3a://nyc-taxi/trip-data/yellow/pickup_date=2002-12-31/part-00004-66c4c13b-a81f-4ab7-92ed-ac4cf82e66dc.c000.snappy.parquet"
-# )
+# spark.sql(create_table_sql)
 
 table_schema = spark.table("nyc_taxi_trip_yellow").schema
 ordered_columns = [f.name for f in table_schema if f.name in df_partitioned.columns]
@@ -168,11 +145,11 @@ df_orderedf = df_ordered.withColumn("VendorID", col("VendorID").cast("bigint"))
 
 # spark.sql("MSCK REPAIR TABLE nyc_taxi_trip_yellow")
 
-try:
-    print("Writing data into Hive table...")
-    df_ordered.write.mode("overwrite").insertInto("nyc_taxi_trip_yellow")
-except Exception as e:
-    print(f"Error inserting data: {e}")
+# try:
+#     print("Writing data into Hive table...")
+#     df_ordered.write.mode("overwrite").insertInto("nyc_taxi_trip_yellow")
+# except Exception as e:
+#     print(f"Error inserting data: {e}")
 
 spark.sql("SHOW TABLES").show()
 # print("Creating Hive external table...")

@@ -51,15 +51,6 @@ RUN curl -L -o /opt/hive/lib/log4j-api-2.17.1.jar https://repo1.maven.org/maven2
 # Add PostgreSQL JDBC
 RUN curl -fsSL https://jdbc.postgresql.org/download/postgresql-42.7.3.jar -o ${HIVE_HOME}/lib/postgresql-42.7.3.jar
 
-# Add AWS credentials for MinIO
-# RUN mkdir -p ${HIVE_HOME}/.aws && \
-#     echo "[default]" > ${HIVE_HOME}/.aws/credentials && \
-#     echo "aws_access_key_id = minioadmin" >> ${HIVE_HOME}/.aws/credentials && \
-#     echo "aws_secret_access_key = minioadmin" >> ${HIVE_HOME}/.aws/credentials && \
-#     echo "[default]" > ${HIVE_HOME}/.aws/config && \
-#     echo "region = asia-sea-1" >> ${HIVE_HOME}/.aws/config && \
-#     echo "output = json" >> ${HIVE_HOME}/.aws/config
-
 # Add hive-site.xml and entrypoint
 COPY config/hive-site.xml ${HIVE_HOME}/conf/hive-site.xml
 COPY hive-metastore/conf/log4j2.properties ${HIVE_HOME}/conf/hive-log4j2.properties

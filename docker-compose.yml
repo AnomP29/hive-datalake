@@ -7,9 +7,11 @@ services:
       - "9001:9001"
     volumes:
       - ./minio-data:/data
+    env_file:
+      - .env
     environment:
-      MINIO_ROOT_USER : minioadmin
-      MINIO_ROOT_PASSWORD : minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
     networks:
       - datalake-net
@@ -22,7 +24,6 @@ services:
       dockerfile: hive-metastore/Dockerfile
     env_file:
       - .env
-
     ports:
       - "9083:9083"
       - "10000:10000"
@@ -30,14 +31,14 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_DEFAULT_REGION: ${AWS_REGION}
-      HIVE_METASTORE_URI: thrift://hive-metastore:9083
-      HIVE_METASTORE_HOST: hive-metastore
-      HIVE_METASTORE_PORT: 9083
-      HIVE_DB_HOST: 172.27.16.1
-      HIVE_DB_PORT: 5432
-      HIVE_DB_NAME: metastore2
-      HIVE_DB_USER: postgres
-      HIVE_DB_PASSWORD: postgres
+      HIVE_METASTORE_URI: ${HIVE_METASTORE_URI}
+      HIVE_METASTORE_HOST: ${HIVE_METASTORE_HOST}
+      HIVE_METASTORE_PORT: ${HIVE_METASTORE_PORT}
+      HIVE_DB_HOST: ${HIVE_DB_HOST}
+      HIVE_DB_PORT: ${HIVE_DB_PORT}
+      HIVE_DB_NAME: ${HIVE_DB_NAME}
+      HIVE_DB_USER: ${HIVE_DB_USER}
+      HIVE_DB_PASSWORD: ${HIVE_DB_PASSWORD}
     # command: ["/opt/hive/bin/hive", "--service", "metastore"]
     command: bash /opt/hive/conf/hive-site.xml
     volumes:
@@ -85,11 +86,13 @@ services:
   spark:
     build: ./spark
     container_name: spark
+    env_file:
+      - .env
     environment:
       SPARK_MODE: master
       SPARK_MASTER_HOST: spark
-      AWS_ACCESS_KEY_ID: minioadmin
-      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
     ports:
       - "8188:8188"
       - "7077:7077"
@@ -99,6 +102,32 @@ services:
     depends_on:
       - hive-metastore
       - minio
+    networks:
+      - datalake-net
+
+  spark-worker-1:
+    image: hive-datalake-spark:latest
+    container_name: spark-worker-1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+    depends_on:
+      - spark
+    networks:
+      - datalake-net
+
+  spark-worker-2:
+    image: hive-datalake-spark:latest
+    container_name: spark-worker-2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+    depends_on:
+      - spark
     networks:
       - datalake-net
 
