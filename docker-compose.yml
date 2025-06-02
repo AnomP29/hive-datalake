@@ -46,42 +46,42 @@ services:
     networks:
       - datalake-net
 
-  trino:
-    build:
-      context: .
-      dockerfile: trino/Dockerfile
-    # build: ./trino
-    container_name: trino
-    ports:
-      - "8080:8080"
-    depends_on:
-      - hive-metastore
-    # volumes:
-    #   - ./trino/etc:/usr/lib/trino/etc
-    #   - ./trino/catalog:/usr/lib/trino/etc/catalog
-      # - ./trino/etc/hadoop/core-site.xml:/etc/hadoop/conf/core-site.xml    
-    networks:
-      - datalake-net
+  # trino:
+  #   build:
+  #     context: .
+  #     dockerfile: trino/Dockerfile
+  #   # build: ./trino
+  #   container_name: trino
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - hive-metastore
+  #   # volumes:
+  #   #   - ./trino/etc:/usr/lib/trino/etc
+  #   #   - ./trino/catalog:/usr/lib/trino/etc/catalog
+  #     # - ./trino/etc/hadoop/core-site.xml:/etc/hadoop/conf/core-site.xml    
+  #   networks:
+  #     - datalake-net
 
-  superset:
-    build: ./superset
-    container_name: superset
-    ports:
-      - "8088:8088"
-    environment:
-      SUPERSET_SECRET_KEY: supersecret
-      SQLALCHEMY_DATABASE_URI: postgresql://postgres:postgres@172.27.16.1:5432/superset
-    entrypoint:
-    - /bin/bash
-    - -c
-    - |
-      /init-superset-db.sh
-    # depends_on:
-    #   - superset-db
-    volumes:
-      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
-    networks:
-      - datalake-net
+  # superset:
+  #   build: ./superset
+  #   container_name: superset
+  #   ports:
+  #     - "8088:8088"
+  #   environment:
+  #     SUPERSET_SECRET_KEY: supersecret
+  #     SQLALCHEMY_DATABASE_URI: postgresql://postgres:postgres@172.27.16.1:5432/superset
+  #   entrypoint:
+  #   - /bin/bash
+  #   - -c
+  #   - |
+  #     /init-superset-db.sh
+  #   # depends_on:
+  #   #   - superset-db
+  #   volumes:
+  #     - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+  #   networks:
+  #     - datalake-net
   
   spark:
     build: ./spark
@@ -113,6 +113,8 @@ services:
       - SPARK_MASTER_URL=spark://spark:7077
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g    
     depends_on:
       - spark
     networks:
@@ -126,6 +128,8 @@ services:
       - SPARK_MASTER_URL=spark://spark:7077
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g    
     depends_on:
       - spark
     networks:

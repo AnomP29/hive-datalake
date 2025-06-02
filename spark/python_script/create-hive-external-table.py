@@ -25,7 +25,11 @@ builder = builder \
     .config("spark.hadoop.fs.s3a.path.style.access", "true") \
     .config("spark.hadoop.fs.s3a.addressing.style", "path") \
     .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
-    .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+    .config("spark.executor.memory", "2g") \
+    .config("spark.executor.cores", "2") \
+    .config("spark.executor.instances", "1") \
+    .config("spark.dynamicAllocation.enabled", "false")
 
 spark = builder.getOrCreate()
 
@@ -131,12 +135,12 @@ CREATE EXTERNAL TABLE IF NOT EXISTS nyc_taxi_trip_yellow (
     {columns_ddl}
 )
 PARTITIONED BY (
-    pickup_date DATE
+    pickup_date STRING
 )
 STORED AS PARQUET
 LOCATION '{output_path}'
 """
-# spark.sql(create_table_sql)
+spark.sql(create_table_sql)
 
 table_schema = spark.table("nyc_taxi_trip_yellow").schema
 ordered_columns = [f.name for f in table_schema if f.name in df_partitioned.columns]
@@ -145,11 +149,11 @@ df_orderedf = df_ordered.withColumn("VendorID", col("VendorID").cast("bigint"))
 
 # spark.sql("MSCK REPAIR TABLE nyc_taxi_trip_yellow")
 
-# try:
-#     print("Writing data into Hive table...")
-#     df_ordered.write.mode("overwrite").insertInto("nyc_taxi_trip_yellow")
-# except Exception as e:
-#     print(f"Error inserting data: {e}")
+try:
+    print("Writing data into Hive table...")
+    df_ordered.write.mode("overwrite").insertInto("nyc_taxi_trip_yellow")
+except Exception as e:
+    print(f"Error inserting data: {e}")
 
 spark.sql("SHOW TABLES").show()
 # print("Creating Hive external table...")
